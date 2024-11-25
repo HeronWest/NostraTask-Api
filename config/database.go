@@ -2,6 +2,8 @@ package config
 
 import (
 	"fmt"
+	"github.com/HeronWest/nostrataskapi/internal/task"
+	"github.com/HeronWest/nostrataskapi/internal/user"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -26,8 +28,15 @@ func InitializeDatabase() *gorm.DB {
 		log.Fatal("Erro ao conectar ao banco de dados:", err)
 	}
 
-	// Se necessário, fazer a migração do banco aqui
-	// db.AutoMigrate(&models.Task{})
+	err = db.AutoMigrate(
+		&user.User{}, // Migração da tabela de usuários
+		&task.Task{}, // Migração da tabela de tarefas
+	)
+	if err != nil {
+		log.Fatal("Erro ao realizar migrações:", err)
+	}
+
+	log.Println("Migrações realizadas com sucesso.")
 
 	return db
 }

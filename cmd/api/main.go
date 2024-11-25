@@ -7,8 +7,13 @@ import (
 	"log"
 )
 
+var (
+	logger *config.Logger
+)
+
 func main() {
-	// Load .env file
+	logger = config.GetLogger("$main: ")
+
 	if err := godotenv.Load("../../../.env"); err != nil {
 		log.Fatal("Erro ao carregar o arquivo .env")
 	}
