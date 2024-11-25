@@ -1,17 +1,25 @@
 package router
 
 import (
+	"github.com/HeronWest/nostrataskapi/config"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
-func InitializeRouter() {
-	// Creating a new Gin router
+func InitializeRouter(di *config.DependencyInjector) {
+	logger := config.GetLogger("router")
 	router := gin.Default()
 
-	initializeRoutes(router)
+	v1 := router.Group("/api/v1")
+
+	di.Provide(func() *gin.RouterGroup {
+		return v1
+	})
+
+	initializeRoutes(di)
 
 	if err := router.Run(":8080"); err != nil {
-		log.Fatal("Erro ao iniciar o servidor:", err)
+		logger.Errorf("Erro ao iniciar o servidor: %v", err)
+	} else {
+		logger.Info("Servidor iniciado com sucesso.")
 	}
 }

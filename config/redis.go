@@ -9,7 +9,7 @@ import (
 )
 
 // Função para inicializar a conexão com o Redis
-func InitializeRedis() *redis.Client {
+func initializeRedis() *redis.Client {
 	// Carregar as variáveis de ambiente
 	redisHost := os.Getenv("REDIS_HOST")
 	redisPort := os.Getenv("REDIS_PORT")

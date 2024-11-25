@@ -1,13 +1,10 @@
 package router
 
 import (
-	"github.com/HeronWest/nostrataskapi/internal/task"
-	"github.com/gin-gonic/gin"
+	"github.com/HeronWest/nostrataskapi/config"
+	"github.com/HeronWest/nostrataskapi/internal/user"
 )
 
-func initializeRoutes(router *gin.Engine) {
-	v1 := router.Group("/api/v1")
-	{
-		task.SetupRoutes(v1)
-	}
+func initializeRoutes(di *config.DependencyInjector) {
+	di.Invoke(user.SetupRoutes)
 }

@@ -1,14 +1,12 @@
 package user
 
 import (
-	"gorm.io/gorm"
-	"time"
+	"github.com/HeronWest/nostrataskapi/internal/base"
 )
 
 type User struct {
-	gorm.Model
-	Name      string    `json:"name"`
-	Email     string    `json:"email" gorm:"unique"`
-	Role      string    `json:"role"`
-	CreatedAt time.Time `json:"created_at"`
+	base.Base
+	Name  string `json:"name"`
+	Email string `json:"email" gorm:"unique"`
+	Role  string `json:"role"`
 }

@@ -7,22 +7,29 @@ import (
 	"log"
 )
 
-var (
-	logger *config.Logger
-)
-
 func main() {
-	logger = config.GetLogger("$main: ")
+	di := config.NewDependencyInjector()
+	ap := config.NewApplicationBindings(di)
+
+	if err := ap.InitializeBindings(); err != nil {
+		panic("Erro ao inicializar as dependências da aplicação")
+	}
 
 	if err := godotenv.Load("../../../.env"); err != nil {
 		log.Fatal("Erro ao carregar o arquivo .env")
 	}
 
-	db := config.InitializeDatabase()
-	//redisClient := config.InitializeRedis()
+	if err := config.Init(); err != nil {
+		panic(err)
+	}
 
-	log.Println("Banco de dados conectado com sucesso:", db)
+	// Obter logger e banco de dados configurados
+	logger := config.GetLogger("$main: ")
 
-	//Inicialize Router
-	router.InitializeRouter()
+	di.Provide(config.GetDB)
+
+	logger.Infof("Sistema inicializado com sucesso!")
+
+	// Inicializar o roteador
+	router.InitializeRouter(di)
 }
