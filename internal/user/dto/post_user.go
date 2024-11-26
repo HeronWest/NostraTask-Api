@@ -1,8 +1,4 @@
-package user
-
-import (
-	"github.com/HeronWest/nostrataskapi/internal/base"
-)
+package dto
 
 type Role string
 
@@ -11,10 +7,9 @@ const (
 	RoleAdmin Role = "admin"
 )
 
-type User struct {
-	base.Base
+type PostUserDTO struct {
 	Name     string `json:"name" binding:"required,min=3,max=255"`
-	Password string `json:"-"`
+	Password string `json:"password" binding:"required,min=6,max=255"`
 	Email    string `json:"email" binding:"required,email" gorm:"unique"`
 	Role     Role   `json:"role" binding:"omitempty,oneof=user admin"`
 }

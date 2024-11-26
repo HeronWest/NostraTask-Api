@@ -242,8 +242,23 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "user.Role": {
+            "type": "string",
+            "enum": [
+                "user",
+                "admin"
+            ],
+            "x-enum-varnames": [
+                "RoleUser",
+                "RoleAdmin"
+            ]
+        },
         "user.User": {
             "type": "object",
+            "required": [
+                "email",
+                "name"
+            ],
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -258,10 +273,20 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 3
                 },
                 "role": {
-                    "type": "string"
+                    "enum": [
+                        "user",
+                        "admin"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/user.Role"
+                        }
+                    ]
                 },
                 "updated_at": {
                     "type": "string"

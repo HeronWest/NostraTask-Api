@@ -1,6 +1,9 @@
 package user
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
+)
 
 type Service interface {
 	GetUserByID(id uuid.UUID) (*User, error)
@@ -27,7 +30,17 @@ func (s *ServiceImpl) GetAllUsers() ([]User, error) {
 }
 
 func (s *ServiceImpl) CreateUser(u *User) (*User, error) {
-	err := s.r.Create(u)
+	// Criptografar a senha
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err // Retorna erro caso a criptografia falhe
+	}
+
+	// Substituir a senha pelo hash criptografado
+	u.Password = string(hashedPassword)
+
+	// Salvar o usuário no repositório
+	err = s.r.Create(u)
 	if err != nil {
 		return nil, err
 	}

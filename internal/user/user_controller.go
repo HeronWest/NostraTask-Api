@@ -1,6 +1,7 @@
 package user
 
 import (
+	"github.com/HeronWest/nostrataskapi/internal/user/dto"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"net/http"
@@ -83,14 +84,21 @@ func (c *ControllerImpl) GetAllUsers(ctx *gin.Context) {
 // @Failure      500   {object}  UserResponse  "Internal server error"
 // @Router       /users [post]
 func (c *ControllerImpl) CreateUser(ctx *gin.Context) {
-	var userInput User
+	var userDTO dto.PostUserDTO
 
-	if err := ctx.ShouldBindJSON(&userInput); err != nil {
+	if err := ctx.ShouldBindJSON(&userDTO); err != nil {
 		ctx.JSON(http.StatusBadRequest, `{"error": "`+err.Error()+`"}`)
 		return
 	}
 
-	u, err := c.s.CreateUser(&userInput)
+	user := User{
+		Name:     userDTO.Name,
+		Email:    userDTO.Email,
+		Password: userDTO.Password,
+		Role:     Role(userDTO.Role),
+	}
+
+	u, err := c.s.CreateUser(&user)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, `{"error": "Failed to create user"}`)
 		return
@@ -122,16 +130,22 @@ func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	var userInput User
+	var userDTO dto.UpdateUserDTO
 
-	if err := ctx.ShouldBindJSON(&userInput); err != nil {
+	if err := ctx.ShouldBindJSON(&userDTO); err != nil {
 		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
-	userInput.ID = id
+	user := User{
+		Name:  userDTO.Name,
+		Email: userDTO.Email,
+		Role:  Role(userDTO.Role),
+	}
 
-	updatedUser, err := c.s.UpdateUser(&userInput)
+	user.ID = id
+
+	updatedUser, err := c.s.UpdateUser(&user)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, `{"error": "User not found"}`)
 		return

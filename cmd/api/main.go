@@ -4,7 +4,6 @@ import (
 	"github.com/HeronWest/nostrataskapi/config"
 	"github.com/HeronWest/nostrataskapi/router"
 	"github.com/joho/godotenv"
-	"log"
 )
 
 // @title NostraTask API
@@ -21,7 +20,7 @@ func main() {
 	}
 
 	if err := godotenv.Load("../../../.env"); err != nil {
-		log.Fatal("Error when trying to load .env file")
+		panic("Error when trying to load .env file")
 	}
 
 	if err := config.Init(); err != nil {

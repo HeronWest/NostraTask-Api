@@ -1,5 +1,13 @@
 basePath: /api/v1
 definitions:
+  user.Role:
+    enum:
+    - user
+    - admin
+    type: string
+    x-enum-varnames:
+    - RoleUser
+    - RoleAdmin
   user.User:
     properties:
       created_at:
@@ -11,11 +19,20 @@ definitions:
       id:
         type: string
       name:
+        maxLength: 255
+        minLength: 3
         type: string
       role:
-        type: string
+        allOf:
+        - $ref: '#/definitions/user.Role'
+        enum:
+        - user
+        - admin
       updated_at:
         type: string
+    required:
+    - email
+    - name
     type: object
   user.UserResponse:
     properties:
