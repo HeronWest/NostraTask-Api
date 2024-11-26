@@ -2,12 +2,13 @@ package user
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
-	"strconv"
 )
 
 type Controller interface {
 	GetUser(c *gin.Context)
+	GetAllUsers(c *gin.Context)
 	CreateUser(c *gin.Context)
 	UpdateUser(c *gin.Context)
 	DeleteUser(c *gin.Context)
@@ -21,47 +22,100 @@ func NewUserController(s Service) Controller {
 	return &ControllerImpl{s: s}
 }
 
-// GetUser - Obtém o usuário com base no ID
+// GetUser godoc
+// @Summary      Retrieve a user
+// @Description  Fetches the details of a user by their ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      200  {object}  User
+// @Failure      400  {object}  map[string]interface{}{"error": string}
+// @Failure      404  {object}  map[string]interface{}{"error": string}
+// @Router       /users/{id} [get]
 func (c *ControllerImpl) GetUser(ctx *gin.Context) {
-	// Pega o ID do usuário da URL
-	id, err := strconv.Atoi(ctx.Param("id"))
+	id := ctx.Param("id")
+
+	// Validate the UUID format
+	parse, err := uuid.Parse(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user UUID"})
 		return
 	}
 
-	u, err := c.s.GetUserByID(uint(id))
+	u, err := c.s.GetUserByID(parse)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Retorna os dados do usuário
 	ctx.JSON(http.StatusOK, u)
 }
 
-// CreateUser - Cria um novo usuário
+// GetAllUsers godoc
+// @Summary      Retrieve all users
+// @Description  Fetches the details of all users in the system
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  []User
+// @Failure		 500  {object}  map[string]interface{}{"error": string}
+// @Router       /users [get]
+func (c *ControllerImpl) GetAllUsers(ctx *gin.Context) {
+	users, err := c.s.GetAllUsers()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
+}
+
+// CreateUser godoc
+// @Summary      Create a new user
+// @Description  Adds a new user to the system
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        user  body      User  true  "User input data"
+// @Success      201   {object}  User
+// @Failure      400   {object}  map[string]interface{}{"error": string}
+// @Failure      500   {object}  map[string]interface{}{"error": string}
+// @Router       /users [post]
 func (c *ControllerImpl) CreateUser(ctx *gin.Context) {
 	var userInput User
 
 	if err := ctx.ShouldBindJSON(&userInput); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	u, err := c.s.CreateUser(&userInput)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Retorna o usuário criado
 	ctx.JSON(http.StatusCreated, u)
 }
 
-// UpdateUser - Atualiza os dados do usuário
+// UpdateUser godoc
+// @Summary      Update user details
+// @Description  Modifies details of an existing user
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id    path      int   true  "User ID"
+// @Param        user  body      User  true  "User updated data"
+// @Success      200   {object}  User
+// @Failure      400   {object}  map[string]interface{}{"error": string}
+// @Failure      500   {object}  map[string]interface{}{"error": string}
+// @Router       /users/{id} [put]
 func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
-	_, err := strconv.Atoi(ctx.Param("id"))
+	id := ctx.Param("id")
+
+	// Validate the UUID format
+	_, err := uuid.Parse(id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
@@ -70,36 +124,48 @@ func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
 	var userInput User
 
 	if err := ctx.ShouldBindJSON(&userInput); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	userInput.ID = id
 
 	updatedUser, err := c.s.UpdateUser(&userInput)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Retorna o usuário atualizado
 	ctx.JSON(http.StatusOK, updatedUser)
 }
 
-// DeleteUser - Deleta um usuário
+// DeleteUser godoc
+// @Summary      Delete a user
+// @Description  Removes a user from the system by their ID
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "User ID"
+// @Success      204  {object}  map[string]interface{}{"message": string}
+// @Failure      400  {object}  map[string]interface{}{"error": string}
+// @Failure      500  {object}  map[string]interface{}{"error": string}
+// @Router       /users/{id} [delete]
 func (c *ControllerImpl) DeleteUser(ctx *gin.Context) {
-	// Pega o ID do usuário da URL
-	id, err := strconv.Atoi(ctx.Param("id"))
+	id := ctx.Param("id")
+
+	// Validate the UUID format
+	parse, err := uuid.Parse(id)
+
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return
 	}
 
-	// Chama o serviço para deletar o usuário
-	err = c.s.DeleteUser(uint(id))
+	err = c.s.DeleteUser(parse)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
 		return
 	}
 
-	// Retorna resposta de sucesso
 	ctx.JSON(http.StatusNoContent, gin.H{"message": "User deleted"})
 }

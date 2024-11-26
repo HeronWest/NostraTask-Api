@@ -14,22 +14,22 @@ var (
 func Init() error {
 	// Carregar variáveis de ambiente
 	if err := godotenv.Load(); err != nil {
-		log.Printf("Erro ao carregar o arquivo .env: %v", err)
+		log.Printf("Error when trying to load the .env file: %v", err)
 	}
 
 	// Inicializar o logger
 	logger = NewLogger("$config: ")
-	logger.Infof("Logger inicializado com sucesso")
+	logger.Infof("Logger initialized")
 
 	// Inicializar o banco de dados
 	var err error
 	db, err = initializeDatabase()
 	if err != nil {
-		logger.Errorf("Erro ao inicializar o banco de dados: %v", err)
+		logger.Errorf("Error when trying to initialize the database: %v", err)
 		return err
 	}
 
-	logger.Infof("Conexão com o banco de dados estabelecida com sucesso")
+	logger.Infof("Conection with the database established")
 	return nil
 }
 
@@ -41,7 +41,7 @@ func GetLogger(p string) *Logger {
 
 func GetDB() *gorm.DB {
 	if db == nil {
-		logger.Errorf("Banco de dados não inicializado")
+		logger.Errorf("Database not initialized")
 	}
 	return db
 }

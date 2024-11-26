@@ -7,16 +7,21 @@ import (
 	"log"
 )
 
+// @title NostraTask API
+// @version 1.0
+// @description API for task management
+// @host localhost:8080
+// @BasePath /api/v1
 func main() {
 	di := config.NewDependencyInjector()
 	ap := config.NewApplicationBindings(di)
 
 	if err := ap.InitializeBindings(); err != nil {
-		panic("Erro ao inicializar as dependências da aplicação")
+		panic("Error when trying to initialize application bindings")
 	}
 
 	if err := godotenv.Load("../../../.env"); err != nil {
-		log.Fatal("Erro ao carregar o arquivo .env")
+		log.Fatal("Error when trying to load .env file")
 	}
 
 	if err := config.Init(); err != nil {
@@ -28,7 +33,7 @@ func main() {
 
 	di.Provide(config.GetDB)
 
-	logger.Infof("Sistema inicializado com sucesso!")
+	logger.Infof("System is running with success!")
 
 	// Inicializar o roteador
 	router.InitializeRouter(di)

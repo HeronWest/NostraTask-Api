@@ -1,16 +1,16 @@
 package user
 
 import (
+	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"os/user"
 )
 
 type Repository interface {
-	FindByID(id uint) (*User, error)
+	FindByID(id uuid.UUID) (*User, error)
 	FindAll() ([]User, error)
 	Create(user *User) error
 	Update(user *User) error
-	Delete(id uint) error
+	Delete(id uuid.UUID) error
 }
 
 type RepositoryImpl struct {
@@ -21,7 +21,7 @@ func NewUserRepository(db *gorm.DB) Repository {
 	return &RepositoryImpl{db: db}
 }
 
-func (r *RepositoryImpl) FindByID(id uint) (*User, error) {
+func (r *RepositoryImpl) FindByID(id uuid.UUID) (*User, error) {
 	var u User
 	err := r.db.First(&u, id).Error
 	if err != nil {
@@ -48,15 +48,16 @@ func (r *RepositoryImpl) Create(user *User) error {
 }
 
 func (r *RepositoryImpl) Update(user *User) error {
-	err := r.db.Save(user).Error
+	// Use o id para garantir o update correto
+	err := r.db.Model(&User{}).Where("id = ?", user.ID).Updates(user).Error
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *RepositoryImpl) Delete(id uint) error {
-	err := r.db.Delete(&user.User{}, id).Error
+func (r *RepositoryImpl) Delete(id uuid.UUID) error {
+	err := r.db.Delete(&User{}, id).Error
 	if err != nil {
 		return err
 	}
