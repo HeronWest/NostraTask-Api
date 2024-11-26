@@ -39,13 +39,13 @@ func (c *ControllerImpl) GetUser(ctx *gin.Context) {
 	// Validate the UUID format
 	parse, err := uuid.Parse(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user UUID"})
+		ctx.JSON(http.StatusBadRequest, `{"error": "Invalid user UUID"}`)
 		return
 	}
 
 	u, err := c.s.GetUserByID(parse)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		ctx.JSON(http.StatusNotFound, `{"error": "User not found"}`)
 		return
 	}
 
@@ -64,7 +64,7 @@ func (c *ControllerImpl) GetUser(ctx *gin.Context) {
 func (c *ControllerImpl) GetAllUsers(ctx *gin.Context) {
 	users, err := c.s.GetAllUsers()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users"})
+		ctx.JSON(http.StatusInternalServerError, `{"error": "Failed to retrieve users"}`)
 		return
 	}
 
@@ -86,13 +86,13 @@ func (c *ControllerImpl) CreateUser(ctx *gin.Context) {
 	var userInput User
 
 	if err := ctx.ShouldBindJSON(&userInput); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, `{"error": "`+err.Error()+`"}`)
 		return
 	}
 
 	u, err := c.s.CreateUser(&userInput)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		ctx.JSON(http.StatusInternalServerError, `{"error": "Failed to create user"}`)
 		return
 	}
 
@@ -118,14 +118,14 @@ func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
 	// Validate the UUID format
 	_, err := uuid.Parse(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		ctx.JSON(http.StatusBadRequest, `{"error": "Invalid user ID"}`)
 		return
 	}
 
 	var userInput User
 
 	if err := ctx.ShouldBindJSON(&userInput); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
+		ctx.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -133,7 +133,7 @@ func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
 
 	updatedUser, err := c.s.UpdateUser(&userInput)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		ctx.JSON(http.StatusNotFound, `{"error": "User not found"}`)
 		return
 	}
 
@@ -158,15 +158,15 @@ func (c *ControllerImpl) DeleteUser(ctx *gin.Context) {
 	// Validate the UUID format
 	parse, err := uuid.Parse(id)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user UUID"})
+		ctx.JSON(http.StatusBadRequest, `{"error": "Invalid user UUID"}`)
 		return
 	}
 
 	err = c.s.DeleteUser(parse)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+		ctx.JSON(http.StatusInternalServerError, `{"error": "Failed to delete user"}`)
 		return
 	}
 
-	ctx.JSON(http.StatusNoContent, gin.H{"message": "User successfully deleted"})
+	ctx.JSON(http.StatusNoContent, `{"message": "User successfully deleted"}`)
 }
