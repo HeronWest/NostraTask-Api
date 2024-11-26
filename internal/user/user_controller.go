@@ -124,7 +124,7 @@ func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	// Validate the UUID format
-	_, err := uuid.Parse(id)
+	parse, err := uuid.Parse(id)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, `{"error": "Invalid user ID"}`)
 		return
@@ -143,7 +143,7 @@ func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
 		Role:  Role(userDTO.Role),
 	}
 
-	user.ID = id
+	user.ID = parse
 
 	updatedUser, err := c.s.UpdateUser(&user)
 	if err != nil {
