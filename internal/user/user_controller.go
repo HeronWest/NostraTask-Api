@@ -23,15 +23,15 @@ func NewUserController(s Service) Controller {
 }
 
 // GetUser godoc
-// @Summary      Retrieve a user
-// @Description  Fetches the details of a user by their ID
+// @Summary      Retrieve a user by ID
+// @Description  Fetches the details of a user by their UUID
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        id   path      int  true  "User ID"
+// @Param        id   path      string  true  "User ID (UUID)"
 // @Success      200  {object}  User
-// @Failure      400  {object}  map[string]interface{}{"error": string}
-// @Failure      404  {object}  map[string]interface{}{"error": string}
+// @Failure      400  {object}  UserResponse  "Invalid UUID format"
+// @Failure      404  {object}  UserResponse  "User not found"
 // @Router       /users/{id} [get]
 func (c *ControllerImpl) GetUser(ctx *gin.Context) {
 	id := ctx.Param("id")
@@ -45,7 +45,7 @@ func (c *ControllerImpl) GetUser(ctx *gin.Context) {
 
 	u, err := c.s.GetUserByID(parse)
 	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
@@ -59,12 +59,12 @@ func (c *ControllerImpl) GetUser(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  []User
-// @Failure		 500  {object}  map[string]interface{}{"error": string}
+// @Failure      500  {object}  UserResponse  "Internal server error"
 // @Router       /users [get]
 func (c *ControllerImpl) GetAllUsers(ctx *gin.Context) {
 	users, err := c.s.GetAllUsers()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users"})
 		return
 	}
 
@@ -79,8 +79,8 @@ func (c *ControllerImpl) GetAllUsers(ctx *gin.Context) {
 // @Produce      json
 // @Param        user  body      User  true  "User input data"
 // @Success      201   {object}  User
-// @Failure      400   {object}  map[string]interface{}{"error": string}
-// @Failure      500   {object}  map[string]interface{}{"error": string}
+// @Failure      400   {object}  UserResponse  "Invalid input data"
+// @Failure      500   {object}  UserResponse  "Internal server error"
 // @Router       /users [post]
 func (c *ControllerImpl) CreateUser(ctx *gin.Context) {
 	var userInput User
@@ -92,7 +92,7 @@ func (c *ControllerImpl) CreateUser(ctx *gin.Context) {
 
 	u, err := c.s.CreateUser(&userInput)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
 
@@ -105,11 +105,12 @@ func (c *ControllerImpl) CreateUser(ctx *gin.Context) {
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        id    path      int   true  "User ID"
-// @Param        user  body      User  true  "User updated data"
+// @Param        id    path      string  true  "User ID (UUID)"
+// @Param        user  body      User    true  "User updated data"
 // @Success      200   {object}  User
-// @Failure      400   {object}  map[string]interface{}{"error": string}
-// @Failure      500   {object}  map[string]interface{}{"error": string}
+// @Failure      400   {object}  UserResponse  "Invalid input or UUID format"
+// @Failure      404   {object}  UserResponse  "User not found"
+// @Failure      500   {object}  UserResponse  "Internal server error"
 // @Router       /users/{id} [put]
 func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
 	id := ctx.Param("id")
@@ -124,7 +125,7 @@ func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
 	var userInput User
 
 	if err := ctx.ShouldBindJSON(&userInput); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
 		return
 	}
 
@@ -132,7 +133,7 @@ func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
 
 	updatedUser, err := c.s.UpdateUser(&userInput)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
@@ -140,24 +141,24 @@ func (c *ControllerImpl) UpdateUser(ctx *gin.Context) {
 }
 
 // DeleteUser godoc
-// @Summary      Delete a user
-// @Description  Removes a user from the system by their ID
+// @Summary      Delete a user by ID
+// @Description  Removes a user from the system by their UUID
 // @Tags         users
 // @Accept       json
 // @Produce      json
-// @Param        id   path      int  true  "User ID"
-// @Success      204  {object}  map[string]interface{}{"message": string}
-// @Failure      400  {object}  map[string]interface{}{"error": string}
-// @Failure      500  {object}  map[string]interface{}{"error": string}
+// @Param        id   path      string  true  "User ID (UUID)"
+// @Success      204  {object}  UserResponse  "User successfully deleted"
+// @Failure      400  {object}  UserResponse  "Invalid UUID format"
+// @Failure      404  {object}  UserResponse  "User not found"
+// @Failure      500  {object}  UserResponse  "Internal server error"
 // @Router       /users/{id} [delete]
 func (c *ControllerImpl) DeleteUser(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	// Validate the UUID format
 	parse, err := uuid.Parse(id)
-
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user UUID"})
 		return
 	}
 
@@ -167,5 +168,5 @@ func (c *ControllerImpl) DeleteUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusNoContent, gin.H{"message": "User deleted"})
+	ctx.JSON(http.StatusNoContent, gin.H{"message": "User successfully deleted"})
 }

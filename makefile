@@ -22,7 +22,7 @@ test:
 
 # Generate Swagger docs
 docs:
-	@swag init -g $(MAIN_FILE) -o $(DOCS_DIR) # Gerar docs no diretório correto
+	@swag init -g $(MAIN_FILE) -o $(DOCS_DIR)  # Gerar docs no diretório correto
 
 # Clean build and docs files
 clean:
