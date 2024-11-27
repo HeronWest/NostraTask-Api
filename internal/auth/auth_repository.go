@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"github.com/HeronWest/nostrataskapi/internal/user"
 	"gorm.io/gorm"
 )
 
@@ -19,8 +18,10 @@ func NewAuthRepository(db *gorm.DB) Repository {
 }
 
 func (r *RepositoryImpl) FindByEmail(email string) (*Auth, error) {
-	var u user.User
-	err := r.db.Where("email = ?", email).First(&u).Error
+	var auth Auth
+
+	// Consulta diretamente na tabela sem depender da estrutura User
+	err := r.db.Table("users").Where("email = ?", email).First(&auth).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.New("user not found")
@@ -28,12 +29,5 @@ func (r *RepositoryImpl) FindByEmail(email string) (*Auth, error) {
 		return nil, err
 	}
 
-	// Converte os dados do usuário para a struct Auth
-	auth := &Auth{
-		ID:       u.ID, // Assumindo que o campo ID em User é do tipo uuid.UUID
-		Email:    u.Email,
-		Password: u.Password,
-	}
-
-	return auth, nil
+	return &auth, nil
 }
