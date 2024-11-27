@@ -4,6 +4,7 @@ import (
 	"github.com/HeronWest/nostrataskapi/config"
 	docs "github.com/HeronWest/nostrataskapi/docs"
 	"github.com/HeronWest/nostrataskapi/internal/auth"
+	"github.com/HeronWest/nostrataskapi/internal/task"
 	"github.com/HeronWest/nostrataskapi/internal/user"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
@@ -16,9 +17,10 @@ func initializeRoutes(di *config.DependencyInjector) {
 
 	di.Invoke(user.SetupRoutes)
 	di.Invoke(auth.SetupRoutes)
+	di.Invoke(task.SetupRoutes)
 
 	di.Invoke(initializeSwagger)
-	
+
 }
 
 func initializeSwagger(router *gin.RouterGroup) {

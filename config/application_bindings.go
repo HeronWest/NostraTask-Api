@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/HeronWest/nostrataskapi/internal/auth"
+	"github.com/HeronWest/nostrataskapi/internal/task"
 	"github.com/HeronWest/nostrataskapi/internal/user"
 )
 
@@ -25,6 +26,10 @@ func (ab *ApplicationBindings) InitializeBindings() error {
 	ab.di.Provide(auth.NewAuthRepository)
 	ab.di.Provide(auth.NewAuthService)
 	ab.di.Provide(auth.NewAuthController)
+
+	ab.di.Provide(task.NewTaskRepository)
+	ab.di.Provide(task.NewTaskService)
+	ab.di.Provide(task.NewTaskController)
 
 	return nil
 }

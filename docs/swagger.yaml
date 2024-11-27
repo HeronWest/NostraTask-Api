@@ -1,5 +1,77 @@
 basePath: /api/v1
 definitions:
+  task.Status:
+    enum:
+    - New
+    - Pending
+    - Executing
+    - Finished
+    - Cancelled
+    type: string
+    x-enum-varnames:
+    - StatusNew
+    - StatusPending
+    - StatusExecuting
+    - StatusFinished
+    - StatusCancelled
+  task.Task:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      due_date:
+        type: string
+      id:
+        type: string
+      status:
+        allOf:
+        - $ref: '#/definitions/task.Status'
+        enum:
+        - Pending
+        - Executing
+        - Finished
+        - Cancelled
+      title:
+        maxLength: 255
+        minLength: 3
+        type: string
+      updated_at:
+        type: string
+    required:
+    - description
+    - due_date
+    - status
+    - title
+    type: object
+  task.TaskHistory:
+    properties:
+      changed_at:
+        type: string
+      field:
+        type: string
+      id:
+        type: string
+      new_value:
+        type: string
+      old_value:
+        type: string
+      task_id:
+        type: string
+      user:
+        $ref: '#/definitions/user.User'
+      user_id:
+        type: string
+    required:
+    - field
+    type: object
+  task.TaskResponse:
+    properties:
+      message:
+        type: string
+    type: object
   user.Role:
     enum:
     - user
@@ -46,6 +118,297 @@ info:
   title: NostraTask API
   version: "1.0"
 paths:
+  /tasks:
+    get:
+      consumes:
+      - application/json
+      description: Fetches the details of all tasks assigned to the user from their
+        claim
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/task.Task'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+      summary: Retrieve all tasks assigned to a user
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Adds a new task to the system, assigned to the user from their
+        claim
+      parameters:
+      - description: Task input data
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/task.Task'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/task.Task'
+        "400":
+          description: Invalid input data
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+      summary: Create a new task
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Removes a task from the system, based on the user's claim
+      parameters:
+      - description: Task ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Task successfully deleted
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+      summary: Delete a task by ID
+      tags:
+      - tasks
+    get:
+      consumes:
+      - application/json
+      description: Fetches the details of a task by its UUID, based on the user's
+        claim
+      parameters:
+      - description: Task ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/task.Task'
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+      summary: Retrieve a task by ID
+      tags:
+      - tasks
+    put:
+      consumes:
+      - application/json
+      description: Modifies an existing task's details, based on the user's claim
+      parameters:
+      - description: Task ID (UUID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated task data
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/task.Task'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/task.Task'
+        "400":
+          description: Invalid input or UUID format
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+      summary: Update a task by ID
+      tags:
+      - tasks
+  /tasks/{task_id}/history:
+    get:
+      consumes:
+      - application/json
+      description: Fetches the history of a specific task, including changes or updates
+        over time
+      parameters:
+      - description: Task ID (UUID)
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/task.TaskHistory'
+            type: array
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+      summary: Retrieve task history by task ID
+      tags:
+      - tasks
+  /tasks/{task_id}/user/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Removes a user from the task based on the provided task ID and
+        user ID
+      parameters:
+      - description: Task ID (UUID)
+        in: path
+        name: task_id
+        required: true
+        type: string
+      - description: User ID (UUID)
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User successfully removed from task
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "404":
+          description: Task or user not found
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+      summary: Remove a user from a task
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Adds a user to a task based on the provided task ID and user ID
+      parameters:
+      - description: Task ID (UUID)
+        in: path
+        name: task_id
+        required: true
+        type: string
+      - description: User ID (UUID)
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User successfully added to task
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "404":
+          description: Task or user not found
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+      summary: Add a user to a task
+      tags:
+      - tasks
+  /tasks/{task_id}/users:
+    get:
+      consumes:
+      - application/json
+      description: Fetches all users assigned to a specific task based on its UUID
+      parameters:
+      - description: Task ID (UUID)
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/user.User'
+            type: array
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/task.TaskResponse'
+      summary: Retrieve all users assigned to a task
+      tags:
+      - tasks
   /users:
     get:
       consumes:

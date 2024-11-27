@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"github.com/HeronWest/nostrataskapi/internal/task"
 	"github.com/HeronWest/nostrataskapi/internal/user"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -31,6 +32,9 @@ func initializeDatabase() (*gorm.DB, error) {
 
 	err = db.AutoMigrate(
 		&user.User{},
+		&task.Task{},
+		&task.TaskUser{},
+		&task.TaskHistory{},
 	)
 	if err != nil {
 		logger.Error("Erro ao realizar migrações:", err)
